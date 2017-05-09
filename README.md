@@ -1,7 +1,7 @@
 # d3.mountains
 ## Generative Mountains
 
-![Image of Mountains](https://octodex.github.com/images/yaktocat.png)
+![Image of Mountains](https://github.com/sebastian-meier/d3.mountains/raw/master/thumb.jpg)
 
 [Try the Demo and create your own mountains.](https://sebastian-meier.github.io/d3.mountains/)
 
