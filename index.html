@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link rel="stylesheet" href="http://cdn:8888/jquery-ui.css">
+  <link rel="stylesheet" media="screen" type="text/css" href="css/colorpicker.css" />
+  <style>
+    body,html{
+      margin:0;
+      padding:0;
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size:10px;
+    }
+
+    #container{
+      width: 100%;
+      margin:0;
+      padding:0;
+    }
+
+    path{
+      stroke:transparent;
+    }
+
+    #menu{
+      width:90%;
+      margin:30px auto;
+      background-color:#000;
+      color:#fff;
+      padding: 10px 0;
+    }
+
+    .form-line{
+      max-width:200px;
+      margin:10px;
+      float:left;
+    }
+
+    .section-title{
+      font-weight:bold;
+      font-size:20px;
+      padding:10px;
+      display: block;
+      clear:both;
+    }
+
+    hr{
+      visibility: hidden;
+      clear:both;
+    }
+
+    label{
+      padding: 0 0 10px 0;
+      display: block;
+    }
+
+    button{
+      margin:10px;
+    }
+
+    #menu-container{
+      width: 100%;
+      background-color:#000;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <div id="menu-container">
+  <div id="menu">
+    <button>Rebuild</button>
+    <section>
+      <span class="section-title">Distance between peaks:</span>
+      <div class="form-line">
+        <label>Min: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="min_dist" data-value="50" data-min="0" data-max="500"></div>
+      </div>
+      <div class="form-line">
+        <label>Max: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="max_dist" data-value="100" data-min="0" data-max="500"></div>
+      </div>
+    </section>
+    <section>
+      <span class="section-title">Mountain lines:</span>
+      <div class="form-line">
+        <label>Overall Height: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="height" data-value="500" data-min="50" data-max="2000"></div>
+      </div>
+      <div class="form-line">
+        <label>Layers: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="layers" data-value="7" data-min="2" data-max="50"></div>
+      </div>
+      <div class="form-line">
+        <label>Overlap: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="overlap" data-value="20" data-min="0" data-max="100"></div>
+      </div>
+      <div class="form-line">
+        <label>Min Height: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="min_height" data-value="0" data-min="0" data-max="200"></div>
+      </div>
+      <div class="form-line">
+        <label>Height Multiply: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="height_multi" data-value="1.2" data-min="0" data-max="10" data-step="0.1"></div>
+      </div>
+      <div class="form-line">
+        <label>Height Extra: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="height_extra" data-value="0.2" data-min="0" data-max="2" data-step="0.1"></div>
+      </div>
+      <div class="form-line">
+        <label>Padding: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="padding" data-value="30" data-min="0" data-max="200"></div>
+      </div>
+    </section>
+    <section>
+      <span class="section-title">Noise:</span>
+      <div class="form-line">
+        <label>Big noise Distance: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="split_dist" data-value="20" data-min="1" data-max="100"></div>
+      </div>
+      <div class="form-line">
+        <label>Big Noise Height: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="split_off" data-value="7" data-min="0" data-max="50"></div>
+      </div>
+      <div class="form-line">
+        <label>Small Noise Distance: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="noise_dist" data-value="3" data-min="1" data-max="50"></div>
+      </div>
+      <div class="form-line">
+        <label>Small Noise Height: (<span class="val"></span>)</label>
+        <div class="config slider" data-key="noise_off" data-value="1.5" data-min="0" data-max="10" data-step="0.1"></div>
+      </div>
+    </section>
+    <section>
+      <span class="section-title">Colors:</span>
+      <div class="form-line">
+        <label>Background: (<span class="val"></span>)</label>
+        <div class="config color" data-key="bg" data-value="dfecf2"></div>
+      </div>
+      <div class="form-line">
+        <label>Back: (<span class="val"></span>)</label>
+        <div class="config color" data-key="back" data-value="a7c5d4"></div>
+      </div>
+      <div class="form-line">
+        <label>Front: (<span class="val"></span>)</label>
+        <div class="config color" data-key="front" data-value="26607e"></div>
+      </div>
+    </section>
+    <hr />
+  </div>
+  </div>
+  <script src="https://d3js.org/d3.v4.min.js"></script>
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="js/colorpicker.js"></script>
+  <script type="text/javascript" src="js/eye.js"></script>
+  <script type="text/javascript" src="js/utils.js"></script>
+  <script type="text/javascript">
+
+    var config = {
+      colors:{
+        back:'#a7c5d4',
+        front:'#26607e',
+        bg:'#dfecf2'
+      },
+      width:window.innerWidth,
+
+      min_height:0,
+      height_multi:1.2,
+      height_extra:0.2,
+
+      min_dist:50,
+      max_dist:100,
+      split_dist:20,
+      split_off:7,
+      noise_dist:3,
+      noise_off:1.5,
+      height:500,
+      layers:7,
+      padding:30,
+      overlap:20 //in %
+    };
+
+    var lineData = [], circleData = [];
+
+    var requiresRebuild = {
+      'layers':1, 'max_dist':1, 'min_dist':1, 'split_dist':1, 'split_off':1,
+      'noise_dist':1, 'noise_off':1, 'padding':1, 'min_height':1, 'height_multi':1, 'height_extra':1
+    };
+
+    var min_height, max_height, extra_height;
+
+
+    function generateData(){
+      config.width = window.innerWidth;
+
+      min_height = config.min_height;
+      max_height = (config.height-config.padding*2)/config.layers*config.height_multi;
+      extra_height = max_height*config.height_extra;
+
+      lineData = [];
+      circleData = [];
+
+      for(var i = 0; i<config.layers; i++){
+        var c = -config.max_dist*2;
+        var p = [];
+        while(c < config.width + config.max_dist*2){
+          var tx = Math.random()*(config.max_dist-config.min_dist)+config.min_dist;
+          c+=tx;
+          var ty = Math.random();
+          ty *= ((c%2==0)?min_height/2:(max_height-min_height));
+          ty += ((c%2==0)?min_height/2:min_height);
+          p.push([c, ty]);
+        }
+
+        var tpp = insertNoise(p,config.split_dist,config.split_off);
+        var ttpp = insertNoise(tpp,config.noise_dist,config.noise_off);
+
+        var pp = [[0,((i===config.layers-1)?-config.padding-extra_height:-extra_height)]];
+        pp = pp.concat(ttpp);
+        pp.push([(config.width+config.max_dist*2),((i===config.layers-1)?-config.padding-extra_height:-extra_height)]);
+
+        lineData.push(pp);
+        circleData.push(p);
+      }
+    }
+
+
+    function build(){
+      config.width = window.innerWidth;
+
+      d3.select('body').style('background-color',config.colors.front);
+
+      var color = d3.scaleLinear().domain([1,config.layers]).range([config.colors.back,config.colors.front]);
+
+      d3.select('#container').selectAll('*').remove();
+
+      var svg = d3.select('#container').append('svg').attr('width',config.width).attr('height',config.height).style('background-color',config.colors.bg);
+
+      var defs = svg.append('defs');
+
+      for(var i = 0; i<config.layers; i++){
+        var l = defs.append('linearGradient')
+          .attr('id', 'gradient-'+i)
+          .attr('gradientTransform','rotate(90)');
+
+        l.append('stop')
+          .attr('offset', '0%')
+          .attr('stop-color', color(i+1));
+
+        l.append('stop')
+          .attr('offset', '100%')
+          .attr('stop-color', (i==config.layers-1)?color(i+1):config.colors.bg);
+      }
+
+      var line = d3.line()
+        .x(function(d){return d[0];})
+        .y(function(d){return (config.height-config.padding*2)/config.layers-d[1];})
+        .curve(d3.curveBasis);
+
+      svg.append('g').selectAll('path').data(lineData).enter().append('path')
+        .attr('fill', function(d,i){ 
+          return 'url(#gradient-'+i+')';
+        })
+        .attr('transform',function(d,i){
+          return 'translate(0,'+(i*((config.height-config.padding*2)/config.layers)+config.padding)+')';
+        })
+        .attr('d', line);
+    }
+
+
+    function insertNoise(p, dist, rand){
+      var pp = [];
+
+      for(var j = 1; j<p.length; j++){
+        var points = Math.ceil((p[j][0] - p[j-1][0])/dist);
+        var pdist = (p[j][0] - p[j-1][0])/points;
+
+        var y = (p[j][1] - p[j-1][1])/(p[j][0] - p[j-1][0]);
+        pp.push(p[j-1]);
+        var ctpdist = 0;
+        for(var k = 0; k<points; k++){
+          var tpdist = pdist*0.2 + pdist*Math.random()*0.8;
+          ctpdist += tpdist;
+          var tpy = ctpdist*y + ((Math.random()<0.5)?-1:1) * Math.random()*rand;
+          pp.push([p[j-1][0]+ctpdist,p[j-1][1]+tpy]);
+        }
+      }
+
+      pp.push(p[p.length-1]);
+
+      return pp;
+    }
+
+    var sliders = [];
+
+    $(function(){
+      var myEfficientFn = debounce(function() {
+        updateConfig();
+      }, 250);
+      $('.config.slider').each(function(){
+        $(this).parent().find('.val').html($(this).data('value'));
+        sliders.push($(this).slider({
+          value: $(this).data('value'),
+          step: $(this).data('step'),
+          min: $(this).data('min'),
+          max: $(this).data('max'),
+          slide: myEfficientFn
+        }));
+      });
+
+      $('.config.color').each(function(){
+        $(this).ColorPicker({
+          flat: true,
+          color: '#'+$(this).data('value'),
+          onChange: function (hsb, hex, rgb) {
+            config.colors[$(this).parent().data('key')] = '#'+hex;
+            myEfficientFn();
+          }
+        });
+      });
+
+      updateConfig();
+      generateData();
+      build();
+    });
+
+    function updateConfig(){
+      var changes = [];
+      $('.config.slider').each(function(){
+        $(this).parent().find('.val').html(parseFloat($(this).slider('value')));
+        var val = parseFloat($(this).slider('value'));
+        if(config[$(this).data('key')] != val){changes.push($(this).data('key'));}
+        config[$(this).data('key')] = val;
+      });
+      var rebuild = false;
+      changes.forEach(function(d){
+        if((d in requiresRebuild)){
+          rebuild = true;
+        }
+      });
+      if(rebuild){
+        generateData();
+      }
+      build();
+    }
+
+    function debounce(func, wait, immediate) {
+      var timeout;
+      return function() {
+        var context = this, args = arguments;
+        var later = function() {
+          timeout = null;
+          if (!immediate) func.apply(context, args);
+        };
+        var callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        if (callNow) func.apply(context, args);
+      };
+    };
+
+    $('button').on('click', function(){generateData(); build();});
+
+  </script>
+</body>
+</html>
